@@ -85,7 +85,7 @@ Four name variants appear in the history. Only the first is current:
 | --- | --- | --- |
 | `claude-auto-split-fix` | `package.json`, repo folder | current |
 | `undo-claude-autogroups` | `releases/*.vsix` | retired |
-| `vscode-undo-claude-autogroups` | old lockfile only | retired |
+| `vscode-undo-claude-autogroups` | historical only (pre-rebrand lockfile, not in the repo) | retired |
 | `claude-tab-same-group` | `releases/*.vsix` | retired |
 
 - Extension ID is `publisher.name` → **`jbot-local.claude-auto-split-fix`**.
