@@ -1,0 +1,7 @@
+# Build tooling only (vsce); the extension itself has no runtime dependencies.
+node_modules/
+
+# Per-project session log written by the omnilog tooling.
+omnilog.md
+
+# Trunk ignores its own caches via .trunk/.gitignore.

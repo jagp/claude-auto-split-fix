@@ -1,0 +1,25 @@
+# Everything not listed here ships inside the VSIX. Keep the package to the
+# manifest, the source, the icon, and the three documents the marketplace
+# renders (README, CHANGELOG, LICENSE).
+
+# Agent and tooling working directories. `.claude/` matters: the repo root can
+# hold `.claude/worktrees/<name>/` containing a full second copy of this
+# project, which vsce would otherwise crawl into the package.
+.claude/**
+.trunk/**
+.vscode/**
+.github/**
+omnilog.md
+CLAUDE.md
+
+# Build inputs and outputs, never the shipped artifact itself.
+assets/**
+dist/**
+releases/**
+node_modules/**
+package-lock.json
+jsconfig.json
+
+# Repo hygiene files with no meaning inside an installed extension.
+.gitignore
+.vscodeignore
