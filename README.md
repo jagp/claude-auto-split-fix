@@ -19,7 +19,7 @@ Build the VSIX, then install it from disk:
 
 ```sh
 npm install
-npm run package        # writes dist/claude-auto-split-fix-0.1.0.vsix
+npm run package        # writes dist/claude-auto-split-fix-0.2.0.vsix
 ```
 
 In VS Code, open the Command Palette (`Ctrl+Shift+P`), run
@@ -30,7 +30,14 @@ In VS Code, open the Command Palette (`Ctrl+Shift+P`), run
 | Setting | Default | Purpose |
 | --- | --- | --- |
 | `claudeAutoSplitFix.enabled` | `true` | Turn the correction on or off. |
-| `claudeAutoSplitFix.restoreDelayMs` | `100` | How long to wait before moving the tab. Raise it if Claude recreates or relocks the split. |
+| `claudeAutoSplitFix.restoreDelayMs` | `400` | How long to wait before correcting. Claude stamps its identity on the tab a few hundred ms after opening it, so this cannot be too small. |
+| `claudeAutoSplitFix.diagnostics` | `true` | Log tab and group events to the "Claude Auto-Split Fix" output channel. |
+
+## Troubleshooting
+
+If the tab is not being moved, run **Claude Auto-Split Fix: Show Diagnostic
+Output** from the Command Palette. The channel records every group and tab
+event, why a candidate was skipped, and whether the correction ran.
 
 ## Develop
 
@@ -42,11 +49,10 @@ from source, then click Claude Code's new-tab button in that window.
 | Path | Contents |
 | --- | --- |
 | `package.json` | Extension manifest. |
-| `src/extension.js` | The entire implementation. |
-| `images/icon.png` | 128×128 icon that ships in the VSIX. |
+| `extension.js` | The entire implementation. |
+| `icon.png` | 128×128 icon that ships in the VSIX. |
 | `assets/` | Full-resolution icon master, not shipped. |
 | `dist/` | Current build output. |
-| `releases/` | Archived VSIX files from earlier extension IDs. |
 
 ## Scope
 

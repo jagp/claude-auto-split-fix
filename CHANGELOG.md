@@ -1,17 +1,37 @@
 # Changelog
 
+## 0.2.1
+
+- New icon. Should be easier to grasp from the extensions menu
+- Tweaked extension meta
+
+## 0.2.0
+
+- Wait for Claude to assign its new tab an identity
+- Track new editors by `tab.input` identity rather than `Tab` object
+  identity, which VS Code does not guarantee to be stable.
+- Re-validate against `tabGroups.activeTabGroup` instead of comparing stored group objects.
+- Pause 50 ms between unlocking the group and moving the editor.
+- Broaden Claude detection to match `/claude/i` against the label, webview
+  `viewType`, `uri`, and input class name.
+- `restoreDelayMs` default raised from 100 to 400 ms (maximum 3000).
+- New `claudeAutoSplitFix.diagnostics` setting (on by default) and
+  **Claude Auto-Split Fix: Show Diagnostic Output** command.
+
+## 0.1.2
+
+- Recognize Claude's buggy "blank" tab behavior
+- Blank tabs are only moved when brand-new and alone in a brand-new active
+  group, so ordinary untitled files opened in a split are left alone
+
+## 0.1.1
+
+- `extension.js` moved to the repo root; `main` updated to match.
+- New 128x128 `icon.png`, downscaled from `assets/new-icon.png`.
+- Removed an unused settings helper and its commented-out leftovers.
+- `repository`, `bugs`, and `homepage` URLs corrected to the real origin.
+
 ## 0.1.0
 
-First release under the extension ID `claude-auto-split-fix`.
-
-- Moves a newly opened Claude Code tab out of Claude's automatically created,
-  locked editor group and into the preceding group.
+- Moves a newly opened Claude Code tab out of Claude's automatically created, locked editor group and into the previously active group.
 - Settings: `claudeAutoSplitFix.enabled` and `claudeAutoSplitFix.restoreDelayMs`.
-
-### Lineage
-
-This extension was previously published under two other IDs,
-`claude-tab-same-group` and `undo-claude-autogroups`. Those are separate
-extension IDs rather than earlier versions of this one, so their version
-numbers do not continue here. Their built packages are archived in
-`releases/` for reference.

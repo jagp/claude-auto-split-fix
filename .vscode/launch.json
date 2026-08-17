@@ -1,10 +1,7 @@
 {
-	"version": "0.2.0",
+	"version": "0.2.1",
 	"configurations": [
 		{
-			// F5 opens a second VS Code window with this extension loaded from
-			// source. Test by clicking Claude Code's new-tab button there and
-			// watching which editor group the tab lands in.
 			"name": "Run Extension",
 			"type": "extensionHost",
 			"request": "launch",
