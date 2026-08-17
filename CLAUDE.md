@@ -9,7 +9,7 @@ a new conversation in a *new, locked* editor group; this extension detects that
 one specific layout change and moves the tab back into the preceding group.
 
 There is no build step, no TypeScript, no bundler, and no test suite. The whole
-implementation is `src/extension.js` (~110 lines) plus the manifest.
+implementation is `extension.js` (~110 lines) plus the manifest.
 
 ## Commands
 
@@ -41,42 +41,55 @@ meaningful can be asserted without a live editor.
 
 ## Architecture
 
-The extension is one narrow heuristic. Its entire difficulty is telling
-"Claude created a new locked split" apart from "the user dragged a tab into a
-new group" — both produce a new editor group containing one Claude tab.
+The extension is one narrow heuristic. Its difficulty is timing, not logic:
+Claude opens a *blank* tab in a new locked group and only stamps its
+`Claude Code` identity onto that tab a few hundred milliseconds later. Asking
+"is this Claude?" at the moment the tab appears always answers no -- that is
+what made an earlier version do nothing at all.
 
-Three signals must line up before anything moves (`src/extension.js`):
+The flow (all inside one `activate` closure in `extension.js`):
 
-1. **New group.** `onDidChangeTabGroups` records every opened group in
-   `pendingNewGroups`. Groups are removed on close.
-2. **New tab object.** `knownTabs` (a `WeakSet`) is seeded at activation and
-   updated on every sighting. A drag *moves an existing* `Tab` object, so it
-   fails this check; Claude's toolbar action creates a genuinely new one. This
-   is the load-bearing distinction — see the comment at `src/extension.js:75-77`.
-3. **Still a lone, active tab.** After `restoreDelayMs`, `correctPlacement`
-   re-checks that the group holds exactly this one tab and that both group and
-   tab are active. Anything else moved in, and the user's layout is left alone.
+1. **Seed.** `rememberExistingInputs` records every existing `tab.input` in a
+   `WeakSet`. Inputs, not `Tab` objects: VS Code may hand back a different
+   `Tab` wrapper for the same editor, so `Tab` identity is unreliable.
+2. **New group.** `onDidChangeTabGroups` stores each opened group in
+   `pendingNewGroups` with a timestamp. Entries older than 5 s are dropped, so
+   a stale group cannot trigger a correction later.
+3. **New input in that group.** `onDidChangeTabs` fires for the opened tab. If
+   its group opened moments ago and its input has never been seen, it is a
+   candidate. A drag reuses an existing input, so it fails this check -- this is
+   the load-bearing distinction between Claude's split and yours.
+4. **Wait for identity.** `correct` sleeps `restoreDelayMs`, then polls every
+   100 ms for up to 2.5 s until `isClaudeTab` becomes true. This is the step
+   the blank phase requires.
+5. **Re-validate against live state.** It reads `tabs.activeTabGroup` and its
+   `activeTab` rather than comparing stored group objects, then requires the
+   candidate to still be the sole tab in the still-active group.
 
-Only then does it run `workbench.action.unlockEditorGroup` followed by
-`workbench.action.moveEditorToPreviousGroup`. The unlock is required because
-Claude locks the group programmatically. VS Code collapses the now-empty split
-on its own.
+Only then does it run `workbench.action.unlockEditorGroup`, pause 50 ms, and
+run `workbench.action.moveEditorToPreviousGroup`. The unlock is required
+because Claude locks the group programmatically; the pause lets the unlock land
+before the move. VS Code collapses the now-empty split on its own.
 
-Two guards keep this from feeding on itself:
+`correctionRunning` guards re-entry, since the two `executeCommand` calls
+themselves fire tab and group events.
 
-- `correctionInProgress` — the two `executeCommand` calls themselves fire tab
-  and group events, which would otherwise re-enter the handler.
-- `handledTabs` (`WeakSet`) — idempotency, since a tab can be scheduled from
-  both the group-opened and tabs-opened paths.
+`restoreDelayMs` (default 400 ms) is the first setting to raise when the fix
+stops working. `diagnostics` (default on) writes every event to the
+"Claude Auto-Split Fix" output channel; the
+`claudeAutoSplitFix.showOutput` command reveals it. That channel is the only
+practical way to debug this, because the behaviour cannot be reproduced outside
+a live editor.
 
-`restoreDelayMs` (default 100 ms) exists because Claude locks the group *after*
-creating it; correcting too early races that lock. It is the first setting to
-raise when the fix stops working.
+`isClaudeTab` is deliberately broad: it tests `/claude/i` against the label,
+the input's `viewType`, its `uri`, and its class name. A narrow anchored
+pattern (`/^Claude Code\b/i`) is what missed the tab before.
 
-Claude tabs are identified by label (`/^Claude Code\b/i`) **or** webview
-`viewType` matching `/claude/i` (`isClaudeTab`). If Anthropic renames the tab,
-this is what breaks first.
-
+The VS Code API exposes no group lock state (`TabGroup` has only `isActive`,
+`viewColumn`, `activeTab`, `tabs`), so "was this group locked by Claude?"
+-- the signal we actually want -- cannot be asked directly. If Anthropic changes
+how the tab is opened, `isClaudeTab` and the identity wait are what break
+first.
 ## Identity and naming
 
 Four name variants appear in the history. Only the first is current:
@@ -84,16 +97,16 @@ Four name variants appear in the history. Only the first is current:
 | Name | Where | Status |
 | --- | --- | --- |
 | `claude-auto-split-fix` | `package.json`, repo folder | current |
-| `undo-claude-autogroups` | `releases/*.vsix` | retired |
+| `undo-claude-autogroups` | historical only (VSIX archive removed) | retired |
 | `vscode-undo-claude-autogroups` | historical only (pre-rebrand lockfile, not in the repo) | retired |
-| `claude-tab-same-group` | `releases/*.vsix` | retired |
+| `claude-tab-same-group` | historical only (VSIX archive removed) | retired |
 
 - Extension ID is `publisher.name` → **`jbot-local.claude-auto-split-fix`**.
   Changing `name` mints a *different* extension, which is why the rebrand reset
   the version to `0.1.0` instead of continuing the old `0.2.x` line, and why
   `CHANGELOG.md` does not backfill the retired IDs' releases.
 - Settings namespace is `claudeAutoSplitFix.*`. It lives in two places that
-  must stay in sync: `CONFIG_SECTION` at `src/extension.js:4` and
+  must stay in sync: `CONFIG_SECTION` at `extension.js:4` and
   `contributes.configuration.properties` in `package.json`.
 - New command IDs should use the same prefix (`claudeAutoSplitFix.*`), with
   palette category and output channel named "Claude Auto-Split Fix". No
@@ -103,27 +116,24 @@ Four name variants appear in the history. Only the first is current:
   cruft, not configuration.
 - `publisher` is `jbot-local`, a placeholder for local VSIX installs. It must
   become a real publisher ID before any marketplace publish.
-- `repository.url` points at `vscode-claude-auto-split-fix`, while the `origin`
-  remote is `claude-auto-split-fix`. One of the two needs to change.
 
 ## Repo conventions
 
 - The manifest lives at the **repo root**, so vsce resolves `README.md`,
-  `CHANGELOG.md`, and `LICENSE` from there and `src/` means source code. An
+  `CHANGELOG.md`, and `LICENSE` from there, and `extension.js` sits beside it. An
   earlier layout put `package.json` inside `src/`, which forced a duplicate
   marketplace readme; do not reintroduce that.
 - `.vscodeignore` decides what ships. It must keep excluding `.claude/**` —
   the repo root can contain `.claude/worktrees/<name>/` holding a full second
   copy of this project, which vsce would otherwise crawl into the package.
   After changing it, check vsce's printed file list: the package should be
-  exactly the manifest, `src/extension.js`, `images/icon.png`, README,
+  exactly the manifest, `extension.js`, `icon.png`, README,
   CHANGELOG, and LICENSE.
 - `@types/vscode` is pinned with `~` to the same minor as `engines.vscode`.
   A caret there resolves to the newest types and offers APIs that do not exist
   in the minimum supported VS Code.
-- `images/icon.png` is a 128×128 downscale of `assets/icon-master.png`.
+- `icon.png` is a 128×128 downscale of `assets/new-icon.png`.
   Regenerate it from the master rather than editing it; the master stays out of
-  the VSIX because it is ~890 KB.
-- `releases/` archives shipped VSIX files under retired IDs. Leave them alone —
-  they are the historical record, not build output. `dist/` holds the current
-  build only.
+  the VSIX because it is ~1.4 MB.
+- `dist/` holds the current build only. VSIX archives for the retired IDs are
+  no longer kept in the repo.
