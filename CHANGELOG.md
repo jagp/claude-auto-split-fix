@@ -8,6 +8,12 @@ First release under the extension ID `claude-auto-split-fix`.
   locked editor group and into the preceding group.
 - Settings: `claudeAutoSplitFix.enabled` and `claudeAutoSplitFix.restoreDelayMs`.
 
+## 0.1.2
+
+- Recognize Claude's buggy "blank" tab behavior
+- Blank tabs are only moved when brand-new and alone in a brand-new active
+  group, so ordinary untitled files opened in a split are left alone
+
 ## 0.1.1
 
 - `extension.js` moved to the repo root; `main` updated to match.
