@@ -1,0 +1,72 @@
+{
+	"name": "claude-auto-split-fix",
+	"displayName": "Claude Code — Fix for New-Tab Auto-Splitting",
+	"description": "Unofficial. Claude Code opens its tab in a new editor group, forcing a split — this moves it back into your active group.",
+	"version": "0.2.0",
+	"publisher": "jbot-local",
+	"license": "MIT",
+	"icon": "icon.png",
+	"engines": {
+		"vscode": "^1.94.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"keywords": [
+		"claude",
+		"claude code",
+		"editor group",
+		"split",
+		"tabs"
+	],
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/jagp/claude-auto-split-fix"
+	},
+	"bugs": {
+		"url": "https://github.com/jagp/claude-auto-split-fix/issues"
+	},
+	"homepage": "https://github.com/jagp/claude-auto-split-fix#readme",
+	"activationEvents": [
+		"onStartupFinished"
+	],
+	"main": "./extension.js",
+	"contributes": {
+		"configuration": {
+			"title": "Claude Code — Fix for New-Tab Auto-Splitting",
+			"properties": {
+				"claudeAutoSplitFix.enabled": {
+					"type": "boolean",
+					"default": true,
+					"description": "Move a newly opened Claude Code tab into the preceding editor group when Claude creates a new split for it."
+				},
+				"claudeAutoSplitFix.restoreDelayMs": {
+					"type": "number",
+					"default": 400,
+					"minimum": 0,
+					"maximum": 3000,
+					"description": "Delay before correcting Claude's editor-group placement. Increase this if Claude recreates or relocks the split."
+				},
+				"claudeAutoSplitFix.diagnostics": {
+					"type": "boolean",
+					"default": true,
+					"description": "Record tab and group events in the Claude Auto-Split Fix output channel."
+				}
+			}
+		},
+		"commands": [
+			{
+				"command": "claudeAutoSplitFix.showOutput",
+				"category": "Claude Auto-Split Fix",
+				"title": "Show Diagnostic Output"
+			}
+		]
+	},
+	"scripts": {
+		"package": "vsce package --no-dependencies --out dist/"
+	},
+	"devDependencies": {
+		"@types/vscode": "~1.94.0",
+		"@vscode/vsce": "^3.6.0"
+	}
+}
