@@ -15,7 +15,6 @@ CLAUDE.md
 # Build inputs and outputs, never the shipped artifact itself.
 assets/**
 dist/**
-releases/**
 node_modules/**
 package-lock.json
 jsconfig.json
