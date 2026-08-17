@@ -1,9 +1,9 @@
 # Changelog
 
+## 0.2.1
 
-- Moves a newly opened Claude Code tab out of Claude's automatically created,
-  locked editor group and into the preceding group.
-- Settings: `claudeAutoSplitFix.enabled` and `claudeAutoSplitFix.restoreDelayMs`.
+- New icon. Should be easier to grasp from the extensions menu
+- Tweaked extension meta
 
 ## 0.2.0
 
