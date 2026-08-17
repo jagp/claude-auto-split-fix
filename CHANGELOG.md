@@ -8,10 +8,14 @@ First release under the extension ID `claude-auto-split-fix`.
   locked editor group and into the preceding group.
 - Settings: `claudeAutoSplitFix.enabled` and `claudeAutoSplitFix.restoreDelayMs`.
 
-### Lineage
+## 0.1.1
 
-This extension was previously published under two other IDs,
-`claude-tab-same-group` and `undo-claude-autogroups`. Those are separate
-extension IDs rather than earlier versions of this one, so their version
-numbers do not continue here. Their built packages are archived in
-`releases/` for reference.
+- `extension.js` moved to the repo root; `main` updated to match.
+- New 128x128 `icon.png`, downscaled from `assets/new-icon.png`.
+- Removed an unused settings helper and its commented-out leftovers.
+- `repository`, `bugs`, and `homepage` URLs corrected to the real origin.
+
+## 0.1.0
+
+- Moves a newly opened Claude Code tab out of Claude's automatically created, locked editor group and into the previously active group.
+- Settings: `claudeAutoSplitFix.enabled` and `claudeAutoSplitFix.restoreDelayMs`.
