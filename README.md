@@ -4,7 +4,7 @@ Unofficial. Not affiliated with Anthropic.
 
 Claude Code's native VS Code toolbar button opens a tab in a new editor group, for no good reason and without a setting to disable. This extension triggers on the precise sequence of events, corrects for Anthropic's lazy blank tab->Claude identity assignment, then moves it back into your active group automatically. The superfluous editor group dies automatically.
 
-[placeholder for animated plugin operation gif]
+![Demo: the tab jumping back to the original editor group](.github/demo.gif)/release
 
 It acts only when Claude is the sole tab in a newly created group, so it will not fight you if you later drag a Claude tab into a split yourself.
 
