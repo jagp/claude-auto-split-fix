@@ -57,7 +57,7 @@ file into the wrong group.
 | `extension.js` | The entire implementation.                |
 | `icon.png`     | 128×128 icon that ships in the VSIX.      |
 | `assets/`      | Full-resolution icon master, not shipped. |
-| `test/`        | Node-only harness replaying tab events against a mocked VS Code API (`npm test`). Not shipped. |
+| `test/`        | `npm test`: node-only harness against a mocked VS Code API. `npm run test:vscode`: integration checks in a real, briefly visible VS Code window. Neither ships. |
 | `dist/`        | Current build output.                     |
 
 ## Scope

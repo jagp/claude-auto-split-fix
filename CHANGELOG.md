@@ -25,8 +25,10 @@
   moved immediately before the move command runs.
 - New `npm test`: a node-only harness (`test/harness.js`) replays tab events
   against a mocked VS Code API across 12 scenarios and asserts when the
-  correction fires. `npm run package` now creates `dist/` if missing, so it
-  works on a fresh clone.
+  correction fires. New `npm run test:vscode`: four integration checks in a
+  real extension host via `@vscode/test-electron` (downloads a VS Code test
+  build and briefly opens a window). `npm run package` now creates `dist/`
+  if missing, so it works on a fresh clone.
 
 ## 0.2.1
 
