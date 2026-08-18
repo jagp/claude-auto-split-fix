@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+- Move a file that opens alone in a brand-new editor group back into the
+  previous group — the layout produced by clicking a file link in the Claude
+  Code sidebar
+  ([anthropics/claude-code#33884](https://github.com/anthropics/claude-code/issues/33884)).
+  On by default; controlled by the new `claudeAutoSplitFix.moveFileTabs`
+  setting.
+- A file already open in another editor group is never moved, so splitting a
+  visible file to the side keeps working.
+- New `npm test`: a node-only harness (`test/harness.js`) replays tab events
+  against a mocked VS Code API and asserts when the correction fires.
+
 ## 0.2.1
 
 - New icon. Should be easier to grasp from the extensions menu
