@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.3.0
 
 - Move a file that opens alone in a brand-new editor group back into the
   previous group — the layout produced by clicking a file link in the Claude
