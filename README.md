@@ -1,17 +1,14 @@
 # Claude Code — Fix for New-Tab Auto-Splitting
+```bug
+BUG: Claude Code's VSCode extension doesn't open new conversations where 
+you'd expect; the toolbar button spawns a new Editor group, places the new 
+conversation into it, then locks the group. 
+```
+This extension fixes the closed-as-unplanned bug, by detecting that specific chain of events, and moving the new conversation back into the group you were already working in - right where you'd expect.
 
-Unofficial. Not affiliated with Anthropic.
+Dead simple. Just set it and forget it.
 
-Claude Code opens its tab in a new editor group, forcing a split — this moves
-it back into your active group.
-
-The Claude Code toolbar button opens each new conversation in a new, *locked*
-editor group. This extension detects that specific layout change and moves the
-new tab into the group you were already working in.
-
-It acts only when Claude is the sole tab in a newly created group, so it will
-not fight you if you later drag a Claude tab into a split yourself: dragging
-moves an existing tab, while the toolbar action creates a new one.
+Unoficial plugin.
 
 ## Install
 
@@ -19,11 +16,13 @@ Build the VSIX, then install it from disk:
 
 ```sh
 npm install
-npm run package        # writes dist/claude-auto-split-fix-0.2.0.vsix
+npm run package        # writes dist/claude-auto-split-fix-<version>.vsix
 ```
 
-In VS Code, open the Command Palette (`Ctrl+Shift+P`), run
-**Extensions: Install from VSIX...**, pick the file in `dist/`, and reload.
+1. In VS Code, open the Command Palette (`Ctrl+Shift+P`)
+2. run **Extensions: Install from VSIX...**
+3. pick the file in `dist/`
+4. reload
 
 ## Settings
 
@@ -35,14 +34,9 @@ In VS Code, open the Command Palette (`Ctrl+Shift+P`), run
 
 ## Troubleshooting
 
-If the tab is not being moved, run **Claude Auto-Split Fix: Show Diagnostic
+If the tab is not reloacting, run **Claude Auto-Split Fix: Show Diagnostic
 Output** from the Command Palette. The channel records every group and tab
 event, why a candidate was skipped, and whether the correction ran.
-
-## Develop
-
-Press `F5` to launch an Extension Development Host with the extension loaded
-from source, then click Claude Code's new-tab button in that window.
 
 ## Layout
 
