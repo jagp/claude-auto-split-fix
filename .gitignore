@@ -5,4 +5,5 @@ src/node_modules/**
 # Per-project session log written by the omnilog tooling.
 omnilog.md
 
-# Trunk ignores its own caches via .trunk/.gitignore.
+# Dont track actual release artifacts
+dist/*
