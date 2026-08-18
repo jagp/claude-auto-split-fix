@@ -1,8 +1,8 @@
 {
 	"name": "claude-auto-split-fix",
-	"displayName": "Claude Code — Fix for New-Tab Auto-Splitting",
-	"description": "Unofficial. Claude Code opens its tab in a new editor group, forcing a split — this moves it back into your active group.",
-	"version": "0.2.0",
+	"displayName": "Claude: Auto-split Fix",
+	"description": "Fix Claude tabs. No splitting!",
+	"version": "0.2.1",
 	"publisher": "jbot-local",
 	"license": "MIT",
 	"icon": "icon.png",
@@ -33,7 +33,7 @@
 	"main": "./extension.js",
 	"contributes": {
 		"configuration": {
-			"title": "Claude Code — Fix for New-Tab Auto-Splitting",
+			"title": "Fix for Claude Code's New-Tab Auto-Splitting",
 			"properties": {
 				"claudeAutoSplitFix.enabled": {
 					"type": "boolean",
