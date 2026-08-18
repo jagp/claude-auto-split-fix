@@ -43,9 +43,11 @@ class TabInputWebview {
   }
 }
 
-// A minimal stand-in for vscode.Uri: the extension only ever stringifies it.
-function makeUri(filePath) {
-  return { toString: () => `file://${filePath}` };
+// A minimal stand-in for vscode.Uri: the extension reads .scheme and
+// stringifies the rest. Default scheme "file", like a real workspace file.
+function makeUri(filePath, scheme) {
+  const uriScheme = scheme || "file";
+  return { scheme: uriScheme, toString: () => `${uriScheme}://${filePath}` };
 }
 
 function makeVscode(settings) {
@@ -125,11 +127,11 @@ function makeGroup(viewColumn) {
   return { viewColumn, isActive: false, tabs: [], activeTab: undefined };
 }
 
-function makeFileTab(filePath) {
+function makeFileTab(filePath, scheme) {
   return {
     label: path.basename(filePath),
     isActive: false,
-    input: new TabInputText(makeUri(filePath)),
+    input: new TabInputText(makeUri(filePath, scheme)),
   };
 }
 
@@ -151,21 +153,23 @@ function stage(settings) {
   return { ...harness, groupOne, existingTab };
 }
 
-// Open `tab` alone in a brand-new group, in VS Code's real event order:
-// group-opened fires before the tab-opened event for the tab inside it.
+// Open `tab` alone in a brand-new group appended after the existing groups,
+// in the event order the shipped Claude flow exhibits: group-opened fires,
+// then the tab-opened event for the tab inside it.
 function openInNewGroup(harness, tab) {
-  const groupTwo = makeGroup(2);
-  harness.groupOne.isActive = false;
-  groupTwo.isActive = true;
-  harness.tabGroups.all.push(groupTwo);
-  harness.tabGroups.activeTabGroup = groupTwo;
-  harness.fireGroups({ opened: [groupTwo], closed: [], changed: [] });
+  const previousActive = harness.tabGroups.activeTabGroup;
+  if (previousActive) previousActive.isActive = false;
+  const newGroup = makeGroup(harness.tabGroups.all.length + 1);
+  newGroup.isActive = true;
+  harness.tabGroups.all.push(newGroup);
+  harness.tabGroups.activeTabGroup = newGroup;
+  harness.fireGroups({ opened: [newGroup], closed: [], changed: [] });
 
   tab.isActive = true;
-  groupTwo.tabs.push(tab);
-  groupTwo.activeTab = tab;
+  newGroup.tabs.push(tab);
+  newGroup.activeTab = tab;
   harness.fireTabs({ opened: [tab], closed: [], changed: [] });
-  return groupTwo;
+  return newGroup;
 }
 
 // ---------------------------------------------------------------------------
@@ -227,26 +231,26 @@ async function main() {
     return harness.executedCommands.includes(MOVE_COMMAND);
   });
 
-  // S5: dragging an existing editor into a new group reuses its input object,
-  // which the extension already knows — a deliberate user action, hands off.
-  await scenario("S5 dragged known input -> not moved", false, async () => {
-    const harness = stage({ restoreDelayMs: 0 });
-    const draggedTab = {
-      label: harness.existingTab.label,
-      isActive: false,
-      input: harness.existingTab.input, // same object = a drag, not an open
-    };
+  // S5: a cross-group drag as the REAL extension host models it: the tab
+  // closes in its old group and reopens in the new one with a brand-new
+  // input object (VS Code recreates inputs freely, so object identity proves
+  // nothing). The closed-URI correlation is what must catch this.
+  await scenario("S5 dragged tab (close+reopen signature) -> not moved", false, async () => {
+    const harness = stage({});
+    const departedTab = harness.existingTab;
     harness.groupOne.tabs = [];
     harness.groupOne.activeTab = undefined;
+    harness.fireTabs({ opened: [], closed: [departedTab], changed: [] });
+    const draggedTab = makeFileTab("/project/existing.js"); // fresh input, same doc
     openInNewGroup(harness, draggedTab);
-    await sleep(400);
+    await sleep(500);
     return harness.executedCommands.includes(MOVE_COMMAND);
   });
 
-  // S6: a second tab joins the new group before the restore delay elapses.
-  // The group is no longer "Claude's lone unwanted split"; leave it alone.
+  // S6: a second tab joins the new group before the file settle (150 ms)
+  // elapses. The group is no longer "a lone unwanted split"; leave it alone.
   await scenario("S6 second tab arrives during delay -> not moved", false, async () => {
-    const harness = stage({ restoreDelayMs: 150 });
+    const harness = stage({});
     const groupTwo = openInNewGroup(harness, makeFileTab("/project/first.js"));
     setTimeout(() => {
       const secondTab = makeFileTab("/project/second.js");
@@ -265,6 +269,61 @@ async function main() {
     const harness = stage({ enabled: false, restoreDelayMs: 0 });
     openInNewGroup(harness, makeFileTab("/project/linked.js"));
     await sleep(400);
+    return harness.executedCommands.includes(MOVE_COMMAND);
+  });
+
+  // S8: a FILE whose path contains "claude" must obey the file rules - here
+  // the user's opt-out - instead of riding the Claude-tab fast path. Before
+  // the isClaudeTab TabInputText early-return, this scenario moved.
+  await scenario("S8 claude-named file respects moveFileTabs off -> not moved", false, async () => {
+    const harness = stage({ moveFileTabs: false });
+    openInNewGroup(harness, makeFileTab("/project/claude-notes.md"));
+    await sleep(500);
+    return harness.executedCommands.includes(MOVE_COMMAND);
+  });
+
+  // S9: a claude-named file already visible in another group must hit the
+  // already-open-elsewhere guard, not bypass it via /claude/i.
+  await scenario("S9 claude-named file open elsewhere -> not moved", false, async () => {
+    const harness = stage({});
+    const claudeDocTab = makeFileTab("/project/CLAUDE.md");
+    harness.groupOne.tabs.push(claudeDocTab);
+    harness.fireTabs({ opened: [claudeDocTab], closed: [], changed: [] });
+    openInNewGroup(harness, makeFileTab("/project/CLAUDE.md")); // fresh input, same doc
+    await sleep(500);
+    return harness.executedCommands.includes(MOVE_COMMAND);
+  });
+
+  // S10: two file links clicked in quick succession, each spawning its own
+  // group. "Previous group" is untrustworthy for the second one (it would
+  // land in the FIRST unwanted split, not the user's editing group), so the
+  // extension must do nothing at all rather than move a file somewhere wrong.
+  await scenario("S10 two new groups in flight -> nothing moved", false, async () => {
+    const harness = stage({});
+    openInNewGroup(harness, makeFileTab("/project/first.js"));
+    setTimeout(() => {
+      openInNewGroup(harness, makeFileTab("/project/second.js"));
+    }, 40);
+    await sleep(700);
+    return harness.executedCommands.includes(MOVE_COMMAND);
+  });
+
+  // S11: virtual documents (gitlens revision views etc.) are TabInputText
+  // with a non-file scheme - other extensions open them beside on purpose.
+  await scenario("S11 non-file scheme document -> not moved", false, async () => {
+    const harness = stage({});
+    openInNewGroup(harness, makeFileTab("/project/thing.js", "gitlens"));
+    await sleep(500);
+    return harness.executedCommands.includes(MOVE_COMMAND);
+  });
+
+  // S12: the positive complement of S8/S9 - a claude-named file with default
+  // settings and no guard tripped is still an ordinary file link and MOVES.
+  // Proves the claude-named cases above fail for the right reason.
+  await scenario("S12 claude-named file, defaults -> moved", true, async () => {
+    const harness = stage({});
+    openInNewGroup(harness, makeFileTab("/project/claude-notes.md"));
+    await sleep(500);
     return harness.executedCommands.includes(MOVE_COMMAND);
   });
 

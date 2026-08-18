@@ -43,14 +43,14 @@
 				"claudeAutoSplitFix.moveFileTabs": {
 					"type": "boolean",
 					"default": true,
-					"description": "Also move a file that opens alone in a brand-new editor group — the layout Claude Code's sidebar file links produce — back into the previous group. A file already open in another group is never touched. Turn this off if you often use 'Open to the Side' on files not yet open anywhere; VS Code gives extensions no way to tell that apart from a Claude file link."
+					"description": "Also move a file that opens alone in a brand-new editor group — the layout Claude Code's sidebar file links produce — back into the previous group. Never touched: a file already open in another group, a document that just closed elsewhere (a drag), and non-file schemes (virtual documents). Turn this off if you deliberately open not-yet-open files into new splits (Open to the Side, Go to Definition to the Side, dragging from the Explorer): the tab API cannot tell those apart from a Claude file link."
 				},
 				"claudeAutoSplitFix.restoreDelayMs": {
 					"type": "number",
 					"default": 400,
 					"minimum": 0,
 					"maximum": 3000,
-					"description": "Delay before correcting Claude's editor-group placement. Increase this if Claude recreates or relocks the split."
+					"description": "Delay before correcting Claude's editor-group placement. Increase this if Claude recreates or relocks the split. Applies to Claude conversation tabs only; plain file tabs use a fixed short settle instead."
 				},
 				"claudeAutoSplitFix.diagnostics": {
 					"type": "boolean",
@@ -68,7 +68,7 @@
 		]
 	},
 	"scripts": {
-		"package": "vsce package --no-dependencies --out dist/",
+		"package": "node -e \"require('fs').mkdirSync('dist',{recursive:true})\" && vsce package --no-dependencies --out dist/",
 		"test": "node test/harness.js"
 	},
 	"devDependencies": {
