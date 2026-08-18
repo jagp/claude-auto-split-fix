@@ -40,6 +40,11 @@
 					"default": true,
 					"description": "Move a newly opened Claude Code tab into the preceding editor group when Claude creates a new split for it."
 				},
+				"claudeAutoSplitFix.moveFileTabs": {
+					"type": "boolean",
+					"default": true,
+					"description": "Also move a file that opens alone in a brand-new editor group — the layout Claude Code's sidebar file links produce — back into the previous group. A file already open in another group is never touched. Turn this off if you often use 'Open to the Side' on files not yet open anywhere; VS Code gives extensions no way to tell that apart from a Claude file link."
+				},
 				"claudeAutoSplitFix.restoreDelayMs": {
 					"type": "number",
 					"default": 400,
@@ -63,7 +68,8 @@
 		]
 	},
 	"scripts": {
-		"package": "vsce package --no-dependencies --out dist/"
+		"package": "vsce package --no-dependencies --out dist/",
+		"test": "node test/harness.js"
 	},
 	"devDependencies": {
 		"@types/vscode": "~1.94.0",

@@ -18,7 +18,13 @@ const CONFIG_SECTION = "claudeAutoSplitFix";
  *      identity shows up or we give up.
  *   5. Re-check that the candidate is still the sole, active tab in the
  *      still-active group. If the user has touched anything, do nothing.
- *   6. Unlock the group Claude locked, pause, then move the editor back.
+ *   6. Accept the candidate if it is Claude's own tab - or, new for
+ *      anthropics/claude-code#33884, a plain file tab: a file link clicked in
+ *      the Claude Code sidebar opens the file alone in a fresh group, the same
+ *      unwanted split with a different tab type. A file only qualifies when
+ *      its document is not already visible in another group, because "already
+ *      visible elsewhere" is what a deliberate split-to-the-side looks like.
+ *   7. Unlock the group Claude locked, pause, then move the editor back.
  *
  * @param {vscode.ExtensionContext} context
  */
@@ -88,6 +94,35 @@ function activate(context) {
     return values.some((value) => /claude/i.test(String(value)));
   }
 
+  // A "plain file" tab: exactly the TabInputText case a clicked file link
+  // produces (anthropics/claude-code#33884). Diff editors, notebooks, and
+  // custom editors stay out of scope on purpose - each extra input type is
+  // another chance to fight a layout the user built deliberately.
+  function isPlainFileTab(tab) {
+    return !!(tab && tab.input instanceof vscode.TabInputText);
+  }
+
+  // True when the same document is already visible in some other group. That
+  // layout is what "split the current file to the side" produces, so a new tab
+  // matching it is almost certainly the user's own split, not a Claude file
+  // link - the correction must stand down. Compares URIs as strings because
+  // input *objects* are not stable across opens (see knownInputs above).
+  function uriOpenInAnotherGroup(tab, homeGroup) {
+    const uriKey = String(tab.input.uri);
+    for (const group of tabs.all) {
+      if (group === homeGroup) continue; // only *other* groups matter
+      for (const otherTab of group.tabs) {
+        if (
+          otherTab.input instanceof vscode.TabInputText &&
+          String(otherTab.input.uri) === uriKey
+        ) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   function rememberExistingInputs() {
     for (const group of tabs.all) {
       for (const tab of group.tabs) {
@@ -103,9 +138,11 @@ function activate(context) {
     await sleep(setting("restoreDelayMs", 400));
 
     // Claude's tab is blank at first and gains its identity shortly after.
-    // Wait for that rather than rejecting it during the blank phase.
+    // Wait for that rather than rejecting it during the blank phase. A plain
+    // file tab needs no such wait - the file itself is the identity - so the
+    // loop exits immediately for the file-link case.
     const deadline = Date.now() + IDENTITY_TIMEOUT_MS;
-    while (!isClaudeTab(openedTab) && Date.now() < deadline) {
+    while (!isClaudeTab(openedTab) && !isPlainFileTab(openedTab) && Date.now() < deadline) {
       await sleep(IDENTITY_POLL_MS);
     }
 
@@ -118,15 +155,30 @@ function activate(context) {
       log(`SKIP ${reason}: no longer the sole active tab; active=${describeTab(activeTab)}`);
       return;
     }
+    // Acceptance: Claude's own tab always qualifies. Otherwise a plain file
+    // tab can qualify (anthropics/claude-code#33884 - sidebar file links open
+    // in a fresh group), but only when the user allows it and the document is
+    // not already showing in another group.
     if (!isClaudeTab(activeTab)) {
-      log(`SKIP ${reason}: never became a Claude tab: ${describeTab(activeTab)}`);
-      return;
+      if (!isPlainFileTab(activeTab)) {
+        log(`SKIP ${reason}: neither a Claude tab nor a plain file: ${describeTab(activeTab)}`);
+        return;
+      }
+      if (!setting("moveFileTabs", true)) {
+        log(`SKIP ${reason}: file tab, moveFileTabs is off: ${describeTab(activeTab)}`);
+        return;
+      }
+      if (uriOpenInAnotherGroup(activeTab, activeGroup)) {
+        log(`SKIP ${reason}: document already open in another group: ${describeTab(activeTab)}`);
+        return;
+      }
     }
 
     correctionRunning = true;
     try {
       log(`CORRECT ${reason}: ${describeTab(activeTab)}`);
       // Claude locks the group programmatically, so unlock before moving.
+      // A file-link group may arrive unlocked; unlocking is then a no-op.
       await vscode.commands.executeCommand("workbench.action.unlockEditorGroup");
       await sleep(UNLOCK_SETTLE_MS);
       await vscode.commands.executeCommand("workbench.action.moveEditorToPreviousGroup");
