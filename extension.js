@@ -68,6 +68,11 @@ function activate(context) {
   const FILE_SETTLE_MS = 150;
   // How recent (ms) a same-document close must be to read as a drag.
   const DRAG_CLOSE_WINDOW_MS = 1500;
+  // How recently another group's birth makes the move target untrustworthy.
+  // Deliberately shorter than GROUP_ELIGIBLE_MS: a split the user made a few
+  // seconds ago is settled layout, not churn, and file links clicked after
+  // it should still be corrected.
+  const MULTI_SPLIT_WINDOW_MS = 2500;
   // URI schemes that count as "a plain file". Virtual documents from other
   // extensions (gitlens:, search-editor:, ...) are opened beside on purpose
   // by those extensions - never by a Claude file link - so leave them be.
@@ -221,7 +226,7 @@ function activate(context) {
       // "previous group" may point at that split instead of the user's real
       // editing group, and moving would land the file somewhere wrong.
       for (const [recentGroup, createdAt] of recentGroupCreations) {
-        if (recentGroup !== activeGroup && Date.now() - createdAt <= GROUP_ELIGIBLE_MS) {
+        if (recentGroup !== activeGroup && Date.now() - createdAt <= MULTI_SPLIT_WINDOW_MS) {
           log(`SKIP ${reason}: multiple new groups in flight; move target untrustworthy`);
           return;
         }
@@ -233,9 +238,16 @@ function activate(context) {
 
     // With no group before this one, "move to previous" does not fail
     // quietly - VS Code CREATES a group on the other side and moves the
-    // editor there, churning the layout. Doing nothing beats that.
-    if (tabs.all.indexOf(activeGroup) <= 0) {
-      log(`SKIP ${reason}: no previous group to move into`);
+    // editor there, churning the layout. "Before" must be judged in GRID
+    // order, which viewColumn reflects. tabs.all is creation-ordered, and a
+    // just-created group is always creation-last, so an array-index check
+    // would never fire (a group made to the LEFT of everything is
+    // creation-last but grid-first).
+    const hasPreviousGroup = tabs.all.some(
+      (otherGroup) => otherGroup.viewColumn < activeGroup.viewColumn
+    );
+    if (!hasPreviousGroup) {
+      log(`SKIP ${reason}: no group before this one in the grid`);
       return;
     }
 

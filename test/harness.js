@@ -327,6 +327,29 @@ async function main() {
     return harness.executedCommands.includes(MOVE_COMMAND);
   });
 
+  // S13: a brand-new group at the FAR LEFT of the grid - grid-first but
+  // creation-LAST. "Move to previous group" would CREATE a group on the
+  // other side instead of failing quietly, so the extension must stand
+  // down. The guard must judge viewColumn (grid order); tabs.all order
+  // (creation order) would never catch this case.
+  await scenario("S13 new group left of everything -> not moved", false, async () => {
+    const harness = stage({});
+    harness.groupOne.viewColumn = 2; // the grid reflowed: existing group slid right
+    const leftGroup = makeGroup(1); // newborn group occupies grid column 1
+    harness.groupOne.isActive = false;
+    leftGroup.isActive = true;
+    harness.tabGroups.all.push(leftGroup); // creation-ordered: appended last
+    harness.tabGroups.activeTabGroup = leftGroup;
+    harness.fireGroups({ opened: [leftGroup], closed: [], changed: [] });
+    const leftwardTab = makeFileTab("/project/leftward.js");
+    leftwardTab.isActive = true;
+    leftGroup.tabs.push(leftwardTab);
+    leftGroup.activeTab = leftwardTab;
+    harness.fireTabs({ opened: [leftwardTab], closed: [], changed: [] });
+    await sleep(500);
+    return harness.executedCommands.includes(MOVE_COMMAND);
+  });
+
   const failures = results.filter((result) => !result.pass);
   if (failures.length > 0) {
     console.error(`${failures.length} scenario(s) failed`);

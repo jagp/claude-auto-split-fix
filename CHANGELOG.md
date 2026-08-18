@@ -13,16 +13,17 @@
   document closed elsewhere moments ago (a drag — input-object identity is not
   reliable for this in the real extension host), the document has a non-file
   URI scheme (virtual documents from other extensions), or several new groups
-  appeared at once (the "previous group" target would be untrustworthy).
+  appeared within ~2.5 s (the "previous group" target would be untrustworthy).
 - A file whose *path* contains "claude" (e.g. `CLAUDE.md`) is classified as a
   plain file, not a Claude conversation tab, so it obeys every file guard and
   the `moveFileTabs` opt-out.
 - File tabs are corrected after a fixed 150 ms settle instead of the full
   `restoreDelayMs`, shrinking the visible bounce; `restoreDelayMs` now governs
   Claude conversation tabs only.
-- Both correction paths abort when no previous group exists (VS Code would
-  create a group instead of failing quietly) and re-confirm focus has not
-  moved immediately before the move command runs.
+- Both correction paths stand down when the new group is already the
+  leftmost/topmost in the grid, judged by `viewColumn` (VS Code would create
+  a group instead of failing quietly), and re-confirm focus has not moved
+  immediately before the move command runs.
 - New `npm test`: a node-only harness (`test/harness.js`) replays tab events
   against a mocked VS Code API across 12 scenarios and asserts when the
   correction fires. New `npm run test:vscode`: four integration checks in a

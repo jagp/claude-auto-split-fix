@@ -43,11 +43,13 @@ If the tab is not being moved, run **Claude Auto-Split Fix: Show Diagnostic
 Output** from the Command Palette. The channel records every group and tab
 event, why a candidate was skipped, and whether the correction ran.
 
-Known limits of the file-link correction, both deliberate do-no-harm choices:
-clicking a link to a file already open in another group is left alone (that
-layout also describes your own splits), and clicking two links faster than the
-correction can run leaves the second split in place rather than risk moving a
-file into the wrong group.
+Known limits of the file-link correction, all deliberate do-no-harm choices:
+a link to a file already open in another group is left alone (that layout also
+describes your own splits); for about 2.5 seconds after any new split appears
+— yours or a pending correction's — further corrections stand down rather than
+risk moving a file into the wrong group, so the second of two rapid link
+clicks keeps its split; and a link clicked within about a second of closing a
+tab on the same file reads as a drag and is left alone.
 
 ## Layout
 
