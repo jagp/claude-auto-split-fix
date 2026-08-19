@@ -2,7 +2,7 @@
 	"name": "claude-auto-split-fix",
 	"displayName": "Claude: Auto-split Fix",
 	"description": "Fix Claude tabs. No splitting!",
-	"version": "0.3.0",
+	"version": "0.3.1",
 	"publisher": "jbot-local",
 	"license": "MIT",
 	"icon": "icon.png",

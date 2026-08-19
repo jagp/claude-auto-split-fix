@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.1
+
+- better readme
+- cleaner demo.gif
+
 ## 0.3.0
 
 - Move a file that opens alone in a brand-new editor group back into the
@@ -14,7 +19,7 @@
   reliable for this in the real extension host), the document has a non-file
   URI scheme (virtual documents from other extensions), or several new groups
   appeared within ~2.5 s (the "previous group" target would be untrustworthy).
-- A file whose *path* contains "claude" (e.g. `CLAUDE.md`) is classified as a
+- A file whose _path_ contains "claude" (e.g. `CLAUDE.md`) is classified as a
   plain file, not a Claude conversation tab, so it obeys every file guard and
   the `moveFileTabs` opt-out.
 - File tabs are corrected after a fixed 150 ms settle instead of the full
