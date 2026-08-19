@@ -2,6 +2,9 @@
 node_modules/
 src/node_modules/**
 
+# VS Code test build downloaded by npm run test:vscode.
+.vscode-test/
+
 # Per-project session log written by the omnilog tooling.
 omnilog.md
 
