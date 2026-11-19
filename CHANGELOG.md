@@ -1,5 +1,7 @@
 # Changelog
 
+## 0.4.1 — unreleased
+
 ## 0.4.0
 
 - First public release on the VS Code Marketplace and Open VSX, under publisher

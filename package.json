@@ -2,7 +2,7 @@
 	"name": "claude-auto-split-fix",
 	"displayName": "Auto-split Fix for New Claude Code Tabs",
 	"description": "Fix Claude tabs. No splitting!",
-	"version": "0.4.0",
+	"version": "0.4.1",
 	"publisher": "interface-layer",
 	"license": "MIT",
 	"pricing": "Free",
