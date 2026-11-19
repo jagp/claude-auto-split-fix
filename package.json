@@ -1,10 +1,11 @@
 {
 	"name": "claude-auto-split-fix",
-	"displayName": "Claude: Auto-split Fix",
+	"displayName": "Auto-split Fix for New Claude Code Tabs",
 	"description": "Fix Claude tabs. No splitting!",
 	"version": "0.3.1",
-	"publisher": "jbot-local",
+	"publisher": "interface-layer",
 	"license": "MIT",
+	"pricing": "Free",
 	"icon": "icon.png",
 	"engines": {
 		"vscode": "^1.94.0"

@@ -6,6 +6,7 @@
 # hold `.claude/worktrees/<name>/` containing a full second copy of this
 # project, which vsce would otherwise crawl into the package.
 .claude/**
+.remember/**
 .trunk/**
 .vscode/**
 .github/**

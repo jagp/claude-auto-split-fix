@@ -24,13 +24,11 @@ A few plausible scenarios exist in which you'd want the above detection disabled
 
 ## How to Use
 
-2 supported install paths:
+### From the Marketplace
 
-### Download & Install
-
-1. Grab the most recent version from github in the Releases section.
-2. Point your VSCode at the VSIX.
-3. Reload
+- **VS Code:** search the Extensions view for "Auto-split Fix for New Claude Code Tabs", or run
+  `code --install-extension interface-layer.claude-auto-split-fix`.
+- **Cursor, Windsurf, VSCodium:** install the same ID from [Open VSX](https://open-vsx.org/extension/interface-layer/claude-auto-split-fix).
 
 ### Build & Install
 
