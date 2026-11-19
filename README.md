@@ -1,16 +1,16 @@
-# Claude Code — Fix for New-Tab Auto-Splitting
+# Claude Code — VSCode: Fix for New-Tab Auto-Splitting
 
-This extension watches for new Claude tabs (which currently open in new Editor groups), immediately shifting them into your previously active editor group. As seen here:
+This VSCode extension provides a simple workaround for a longstanding bug in Anthropic's Claude Code extension.  It immediately shifts new, stranded Claude tabs back where they belong. As seen here:
 
 ![Demo: the tab jumping back to the original editor group](.github/demo.gif)
 
 ## Purpose
 
-Claude's VS Code toolbar button has a weirdly opinionated behavior: it splits your active editor group into a new, _locked_ group, and puts the new conversation tab in it.
+Claude's VS Code toolbar button has a weirdly opinionated behavior: when creating a new CC conversation, it first creates a new Editor group (splitting your working space in half) -- puts the new conversation tab in it, then *locks* the group.
 
-Standard UX would place the new tab as a sibling of your current tab,in the same group. The recent designation of "closed-as-unplanned" suggests this won't change any time soon.
+Standard UX would place the new tab as a sibling of your current tab, in the same Editor group.  While I'm comfortable calling this a bug, several GitHub issues tracking this problem were recently designated *"closed-as-unplanned"* -- suggesting this won't change any time soon.
 
-Hence, this set-it-and-forget-it extension to simply fix that odd behavior. It moves the freshly created tab back into your active group automatically; the superfluous editor group then dies automatically.
+Hence, this extension which simply fixes that odd behavior. It unlocks the group, and moves the freshly created tab back into your active group automatically; the superfluous editor group then dies automatically.
 
 ## Notes
 

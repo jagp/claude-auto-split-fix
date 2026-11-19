@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.4.0
+
+- First public release on the VS Code Marketplace and Open VSX, under publisher
+  `interface-layer`. The extension ID changes from
+  `jbot-local.claude-auto-split-fix`; uninstall the old local copy.
+- Renamed to "Auto-split Fix for New Claude Code Tabs".
+- Tagged releases publish automatically from GitHub Actions.
+- New test pins the packaged file list to the six shipped files.
+
 ## 0.3.1
 
 - better readme
