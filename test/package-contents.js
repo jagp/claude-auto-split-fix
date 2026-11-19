@@ -11,3 +11,12 @@ if (extra.length || missing.length) {
   process.exit(1);
 }
 console.log(`PASS package contents: ${actual.length} files`);
+
+// The publish workflow runs `vsce publish --oidc`; v0.4.0's run died because
+// the locked vsce predated that flag. Fail here, before a tag is pushed.
+const help = execSync("npx vsce publish --help", { encoding: "utf8" });
+if (!/--oidc\b/.test(help)) {
+  console.error("FAIL vsce publish lacks --oidc (Trusted Publishing); upgrade @vscode/vsce");
+  process.exit(1);
+}
+console.log("PASS vsce supports --oidc");
