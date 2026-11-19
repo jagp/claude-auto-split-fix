@@ -1,6 +1,11 @@
 # Changelog
 
-## 0.4.1 — unreleased
+## 0.4.1
+
+- Publish pipeline fix: upgrade @vscode/vsce to 4.1.1 so Trusted Publishing
+  (`--oidc`) works. 0.4.0 never reached the Marketplace; this is the first
+  published version.
+- Tests now fail if the installed vsce lacks `--oidc`.
 
 ## 0.4.0
 
