@@ -64,8 +64,10 @@ async function openBeside(uri) {
 }
 
 module.exports.run = async function run() {
-  const extension = vscode.extensions.getExtension("jbot-local.claude-auto-split-fix");
-  assert.ok(extension, "extension jbot-local.claude-auto-split-fix not found in test host");
+  const { publisher, name } = require("../../../package.json");
+  const extensionId = `${publisher}.${name}`;
+  const extension = vscode.extensions.getExtension(extensionId);
+  assert.ok(extension, `extension ${extensionId} not found in test host`);
   await extension.activate();
 
   const workspaceRoot = vscode.workspace.workspaceFolders[0].uri;

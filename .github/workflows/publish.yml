@@ -1,0 +1,35 @@
+# Publishes the extension when a version tag (v1.2.3) is pushed.
+# VS Code Marketplace: Trusted Publishing (OIDC), so no Marketplace secret is stored.
+# Open VSX: needs the OVSX_PAT repository secret.
+name: Publish
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: marketplace
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - run: npm test
+      - name: Check tag matches package.json version
+        if: startsWith(github.ref, 'refs/tags/')
+        run: test "v$(node -p "require('./package.json').version")" = "$GITHUB_REF_NAME"
+      - run: npx vsce package --no-dependencies --out ext.vsix
+      - name: Publish to VS Code Marketplace
+        run: npx vsce publish --oidc --packagePath ext.vsix
+      - name: Publish to Open VSX
+        run: npx --yes ovsx publish ext.vsix --pat "$OVSX_PAT"
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
